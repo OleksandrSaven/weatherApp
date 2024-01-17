@@ -1,6 +1,5 @@
 package com.weather.data.remote
 
-import com.weather.data.remote.WeatherDto
 import retrofit2.http.GET
 import retrofit2.http.Query
 
