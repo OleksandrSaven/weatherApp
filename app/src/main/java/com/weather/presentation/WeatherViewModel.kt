@@ -6,13 +6,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.weather.data.mapper.toWeatherInfo
-import com.weather.data.service.WeatherApiService
-import com.weather.domain.model.WeatherData
+import com.weather.data.network.service.WeatherApiService
+import com.weather.data.repository.WeatherRepositoryImpl
+import com.weather.domain.model.weather.WeatherData
+import com.weather.domain.repository.WeatherRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class WeatherViewModel: ViewModel() {
+    val weatherRepository = WeatherRepositoryImpl()
+
     private var _weatherData = MutableLiveData<WeatherData?>()
     val weatherData: LiveData<WeatherData?>
         get() = _weatherData

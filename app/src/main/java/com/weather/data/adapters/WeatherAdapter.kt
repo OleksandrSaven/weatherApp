@@ -4,11 +4,11 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.weather.databinding.ItemWeatherBinding
-import com.weather.domain.model.WeatherData
+import com.weather.domain.model.weather.WeatherData
 import java.time.format.DateTimeFormatter
 
 class WeatherAdapter: RecyclerView.Adapter<WeatherAdapter.WeatherViewHolder>() {
-     var weathers: List<WeatherData> = emptyList()
+     private var weathers: List<WeatherData> = emptyList()
         set(value) {
             field = value
             notifyDataSetChanged()

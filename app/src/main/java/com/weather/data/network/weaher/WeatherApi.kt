@@ -1,6 +1,5 @@
-package com.weather.data.remote
+package com.weather.data.network.weaher
 
-import kotlinx.coroutines.Deferred
 import retrofit2.http.GET
 import retrofit2.http.Query
 

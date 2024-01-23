@@ -1,10 +1,10 @@
 package com.weather.data.mapper
 
-import com.weather.data.remote.WeatherDataDto
-import com.weather.data.remote.WeatherDto
-import com.weather.domain.model.WeatherData
-import com.weather.domain.model.WeatherInfo
-import com.weather.domain.model.WeatherType
+import com.weather.data.network.weaher.WeatherDataDto
+import com.weather.data.network.weaher.WeatherDto
+import com.weather.domain.model.weather.WeatherData
+import com.weather.domain.model.weather.WeatherInfo
+import com.weather.domain.model.weather.WeatherType
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

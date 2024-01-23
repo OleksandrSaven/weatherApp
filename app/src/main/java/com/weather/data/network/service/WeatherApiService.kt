@@ -1,15 +1,16 @@
-package com.weather.data.service
+package com.weather.data.network.service
 
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
-import com.weather.data.remote.WeatherApi
+import com.weather.data.network.weaher.WeatherApi
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
-import retrofit2.create
+
+private const val BASE_URL_WEATHER = "https://api.open-meteo.com/"
 
 private var retrofit  = Retrofit.Builder()
     .addConverterFactory(MoshiConverterFactory.create())
     .addCallAdapterFactory(CoroutineCallAdapterFactory())
-    .baseUrl("https://api.open-meteo.com/")
+    .baseUrl(BASE_URL_WEATHER)
     .build()
 
 object WeatherApiService {

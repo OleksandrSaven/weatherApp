@@ -1,7 +1,6 @@
-package com.weather.data.remote
+package com.weather.data.network.weaher
 
 import com.squareup.moshi.Json
-
 
 data class WeatherDataDto(
     val time: List<String>,
