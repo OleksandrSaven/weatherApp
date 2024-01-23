@@ -1,8 +1,8 @@
 package com.weather.data.network.place
 
+import com.squareup.moshi.Json
+
 data class PlaceDto(
-    val name: String,
-    val latitude: Double,
-    val longitude: Double,
-    val country: String
+    @field:Json(name = "results")
+    val placeData: List<PlaceDataDto>
 )
