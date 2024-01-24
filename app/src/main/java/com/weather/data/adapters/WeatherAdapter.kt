@@ -8,7 +8,7 @@ import com.weather.domain.model.weather.WeatherData
 import java.time.format.DateTimeFormatter
 
 class WeatherAdapter: RecyclerView.Adapter<WeatherAdapter.WeatherViewHolder>() {
-     private var weathers: List<WeatherData> = emptyList()
+     var weathers: List<WeatherData> = emptyList()
         set(value) {
             field = value
             notifyDataSetChanged()

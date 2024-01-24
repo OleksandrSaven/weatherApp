@@ -14,5 +14,4 @@
         android:id="@+id/settingsFragment"
         android:title="Settings"
         android:icon="@drawable/baseline_settings_24"/>
-
 </menu>
