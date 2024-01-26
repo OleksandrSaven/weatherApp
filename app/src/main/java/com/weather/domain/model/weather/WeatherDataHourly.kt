@@ -2,7 +2,7 @@ package com.weather.domain.model.weather
 
 import java.time.LocalDateTime
 
-data class WeatherData(
+data class WeatherDataHourly(
     val time: LocalDateTime,
     val temperature: Double,
     val pressure: Double,

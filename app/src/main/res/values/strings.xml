@@ -4,4 +4,16 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="overcast">Overcast</string>
+    <string name="max_temp">"Max temperature: "</string>
+    <string name="min_temp">"Min temperature: "</string>
+    <string name="delimiter">" "</string>
+    <string name="TODAY">"Today "</string>
+    <string name="temperature_format">%s °C</string>
+    <string name="minTemperature_format">Min temperature: %s °C</string>
+    <string name="maxTemperature_format">Max temperature: %s °C</string>
+    <string name="pressure_format">%s hPa</string>
+    <string name="humidity_format">%s %%</string>
+    <string name="wind_format">"%s km/h"</string>
+    <string name="today_format">Today %s</string>
+    <string name="day_month">%1$s %2$s</string>
 </resources>

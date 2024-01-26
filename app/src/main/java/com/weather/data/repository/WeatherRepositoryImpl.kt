@@ -1,6 +1,6 @@
 package com.weather.data.repository
 
-import com.weather.data.mapper.toWeatherInfo
+import com.weather.data.mapper.toWeatherData
 import com.weather.data.network.service.WeatherApiService
 import com.weather.domain.model.weather.WeatherInfo
 import com.weather.domain.repository.WeatherRepository
@@ -14,7 +14,7 @@ class WeatherRepositoryImpl(
                 data = WeatherApiService.retrofitService.getWeatherData(
                     lat = lat,
                     long = long)
-                    .toWeatherInfo()
+                    .toWeatherData()
             )
         } catch (e: Exception) {
             e.printStackTrace()
