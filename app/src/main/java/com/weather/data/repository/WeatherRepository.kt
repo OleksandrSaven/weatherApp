@@ -6,7 +6,7 @@ import com.weather.domain.model.weather.WeatherInfo
 import com.weather.domain.repository.WeatherRepository
 import com.weather.domain.util.Resource
 
-class WeatherRepositoryImpl(
+class WeatherRepository(
 ): WeatherRepository {
     override suspend fun getWeatherData(lat: Double, long: Double): Resource<WeatherInfo> {
         return try {

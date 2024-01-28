@@ -39,7 +39,7 @@ class DaysAdapter: RecyclerView.Adapter<DaysAdapter.WeatherViewHolder> () {
                 maxTemperature.toString())
             maxTempText.text = maxTemperatureFormatted
 
-            val minTemperature = weather.maxTemperature
+            val minTemperature = weather.minTemperature
             val minTemperatureFormatted = WeatherApp.context.resources.getString(R.string.minTemperature_format,
                 minTemperature.toString())
             minTempText.text = minTemperatureFormatted

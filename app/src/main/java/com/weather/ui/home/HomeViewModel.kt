@@ -1,26 +1,38 @@
-package com.weather.presentation.home
+package com.weather.ui.home
 
-
-import android.util.Log
+import android.widget.Toast
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.weather.WeatherApp
 import com.weather.data.mapper.toWeatherData
 import com.weather.data.network.service.PlaceApiService
 import com.weather.data.network.service.WeatherApiService
+import com.weather.data.repository.PlaceRepository
 import com.weather.domain.model.weather.WeatherDataDaily
 import com.weather.domain.model.weather.WeatherDataHourly
+import com.weather.domain.util.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+const val DEFAULT_CITY = "Lviv"
+
 class HomeViewModel() : ViewModel() {
+    private val placeRepository = PlaceRepository()
+    private var latitude: Double = 0.0
+    private var longitude: Double = 0.0
 
-     var latitude: Double = 50.45466
 
-     var longitude: Double = 30.5238
+    private var _loadingState = MutableLiveData<Boolean>()
+    val loadingState: LiveData<Boolean>
+        get() = _loadingState
 
+    private var _city = MutableLiveData<String>()
+    val city: LiveData<String>
+        get() = _city
 
     private var _daily = MutableLiveData<List<WeatherDataDaily>>()
     val days: LiveData<List<WeatherDataDaily>>
@@ -35,31 +47,33 @@ class HomeViewModel() : ViewModel() {
         get() = _hourly
 
     init {
-        loadLocation("Lviv")
-
-        Log.i("LoadWeatherInfo", _hourly.value.toString())
-        Log.i("loadWeather", latitude.toString())
-        loadWeatherInfo(latitude, longitude)
+        loadLocation(DEFAULT_CITY)
+        //loadWeatherInfo(latitude, longitude)
     }
 
     fun loadLocation(city: String) {
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                PlaceApiService.retrofitService.getLocation(city)
+            _loadingState.value = true
+            when(val result = placeRepository.getPlace(city)) {
+                is Resource.Success -> {
+                    val place = result.data
+                    if (place != null) {
+                        latitude = place.location.lat
+                        longitude = place.location.long
+                        _city.value = place.name
+                        loadWeatherInfo(latitude, longitude)
+                    }
+                }
+                is Resource.Error -> {
+                    val errorMessage = result.message
+                    Toast.makeText(WeatherApp.context, errorMessage, Toast.LENGTH_SHORT).show()
+                }
             }
-            try {
-                latitude = result.placeData[0].latitude
-                longitude = result.placeData[0].longitude
-                Log.i("In", longitude.toString())
-                Log.i("In", latitude.toString())
-                loadWeatherInfo(latitude, longitude)
-            } catch (e: Exception) {
-
-            }
+            _loadingState.value = false
         }
     }
 
-    fun loadWeatherInfo(latitude: Double, longitude: Double) {
+    private fun loadWeatherInfo(latitude: Double, longitude: Double) {
         viewModelScope.launch {
             val result =  withContext(Dispatchers.IO) {
                 WeatherApiService.retrofitService.getWeatherData(latitude, longitude)
@@ -68,7 +82,7 @@ class HomeViewModel() : ViewModel() {
                 _hourly.value = result.toWeatherData().weatherDataPerDay[0]
                 _daily.value = result.toWeatherData().weatherDatePerWeek.values.flatten()
                 _currentValue.value = result.toWeatherData().currentWeatherData
-            } catch (e :  Exception){
+            } catch (e : Exception){
                 _hourly.value = ArrayList()
                 _daily.value = ArrayList()
             }

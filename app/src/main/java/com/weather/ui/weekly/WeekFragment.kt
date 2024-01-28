@@ -1,7 +1,6 @@
-package com.weather.presentation.weekly
+package com.weather.ui.weekly
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -11,7 +10,7 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.weather.data.adapters.DaysAdapter
 import com.weather.databinding.FragmentWeekBinding
-import com.weather.presentation.home.HomeViewModel
+import com.weather.ui.home.HomeViewModel
 
 class WeekFragment : Fragment() {
     private val viewModel: HomeViewModel by activityViewModels()

@@ -1,4 +1,4 @@
-package com.weather.presentation.home
+package com.weather.ui.home
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -30,6 +30,24 @@ class HomeFragment : Fragment() {
             recyclerview.layoutManager = manager
             recyclerview.adapter = adapter
         }
+
+        viewModel.city.observe(viewLifecycleOwner, Observer {
+            binding.cityText.text = it
+        })
+
+        viewModel.loadingState.observe(viewLifecycleOwner, Observer { isLoading ->
+            if(isLoading) {
+                binding.progressBar4.visibility = View.VISIBLE
+                binding.searchView.visibility = View.GONE
+                binding.frameLayout.visibility = View.GONE
+                binding.recyclerview.visibility = View.GONE
+            } else {
+                binding.progressBar4.visibility = View.GONE
+                binding.searchView.visibility = View.VISIBLE
+                binding.frameLayout.visibility = View.VISIBLE
+                binding.recyclerview.visibility = View.VISIBLE
+            }
+        })
 
 
         viewModel.currentHour.observe(viewLifecycleOwner, Observer {

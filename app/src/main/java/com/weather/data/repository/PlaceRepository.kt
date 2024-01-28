@@ -8,19 +8,22 @@ import com.weather.domain.util.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class PlaceRepositoryImpl(
+const val FIRST_CITY = 0
+
+class PlaceRepository(
 ): PlaceRepository {
     override suspend fun getPlace(name: String): Resource<Place> {
         return withContext(Dispatchers.IO){
         try {
             val response = PlaceApiService.retrofitService.getLocation(name)
             Resource.Success(
-                data = response.placeData[0].toPlace()
+                data = response.placeData[FIRST_CITY].toPlace()
             )
         } catch (e: Exception) {
             e.printStackTrace()
-            Resource.Error(e.message ?: "An unknown error occurred.")
+            Resource.Error( "It is not possible to determine the location," +
+                    " check the correctness of the entered data." )
+            }
         }
     }
-}
 }
