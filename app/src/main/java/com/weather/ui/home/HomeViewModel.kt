@@ -1,30 +1,40 @@
 package com.weather.ui.home
 
+import android.content.Context
 import android.widget.Toast
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.weather.WeatherApp
+import com.weather.WeatherApp.Companion.context
 import com.weather.data.mapper.toWeatherData
-import com.weather.data.network.service.PlaceApiService
+import com.weather.data.mapper.toWeatherHourly
+import com.weather.data.mapper.toWeatherHourlyDto
 import com.weather.data.network.service.WeatherApiService
 import com.weather.data.repository.PlaceRepository
+import com.weather.data.repository.WeatherRepository
+import com.weather.db.WeatherDatabase
 import com.weather.domain.model.weather.WeatherDataDaily
 import com.weather.domain.model.weather.WeatherDataHourly
 import com.weather.domain.util.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDateTime
 
-const val DEFAULT_CITY = "Lviv"
 
-class HomeViewModel() : ViewModel() {
+class HomeViewModel: ViewModel() {
     private val placeRepository = PlaceRepository()
+    private val sharedPreferences = context.getSharedPreferences("my_preferences",
+        Context.MODE_PRIVATE)
+
+    private val database = WeatherDatabase.getInstance(WeatherApp.context)
+    private val hourlyDao = database.weatherHourlyDao()
+    private val repository = WeatherRepository(hourlyDao)
+
     private var latitude: Double = 0.0
     private var longitude: Double = 0.0
-
 
     private var _loadingState = MutableLiveData<Boolean>()
     val loadingState: LiveData<Boolean>
@@ -47,8 +57,7 @@ class HomeViewModel() : ViewModel() {
         get() = _hourly
 
     init {
-        loadLocation(DEFAULT_CITY)
-        //loadWeatherInfo(latitude, longitude)
+        loadCacheWeather()
     }
 
     fun loadLocation(city: String) {
@@ -61,12 +70,14 @@ class HomeViewModel() : ViewModel() {
                         latitude = place.location.lat
                         longitude = place.location.long
                         _city.value = place.name
+                        sharedPreferences.edit().putString("city_name", place.name).apply()
                         loadWeatherInfo(latitude, longitude)
                     }
                 }
                 is Resource.Error -> {
                     val errorMessage = result.message
-                    Toast.makeText(WeatherApp.context, errorMessage, Toast.LENGTH_SHORT).show()
+
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
                 }
             }
             _loadingState.value = false
@@ -79,6 +90,7 @@ class HomeViewModel() : ViewModel() {
                 WeatherApiService.retrofitService.getWeatherData(latitude, longitude)
             }
             try {
+                repository.saveWeatherHourlyData(result.weatherHourly, hourlyDao)
                 _hourly.value = result.toWeatherData().weatherDataPerDay[0]
                 _daily.value = result.toWeatherData().weatherDatePerWeek.values.flatten()
                 _currentValue.value = result.toWeatherData().currentWeatherData
@@ -86,6 +98,26 @@ class HomeViewModel() : ViewModel() {
                 _hourly.value = ArrayList()
                 _daily.value = ArrayList()
             }
+        }
+    }
+
+
+    private fun loadCacheWeather() {
+        viewModelScope.launch {
+            val allWeatherHourlyEntities = repository
+                .getAllWeatherHourlyEntities(context).toWeatherHourlyDto()
+
+            _hourly.value = allWeatherHourlyEntities.toWeatherHourly().values.flatten()
+            val now = LocalDateTime.now()
+            _currentValue.value = allWeatherHourlyEntities.toWeatherHourly()[0]?.find {
+                val hour = when {
+                    now.minute < 30 -> now.hour
+                    now.hour == 23 -> 23
+                    else -> now.hour + 1
+                }
+                it.time.hour == hour
+            }
+            _city.value = sharedPreferences.getString("city_name", "An know")
         }
     }
 }

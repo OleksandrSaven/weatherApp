@@ -15,3 +15,4 @@ data class WeatherHourlyDto(
     @field:Json(name = "relativehumidity_2m")
     val humidities: List<Double>,
 )
+
