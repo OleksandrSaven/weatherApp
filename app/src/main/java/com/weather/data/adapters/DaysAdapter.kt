@@ -8,6 +8,9 @@ import com.weather.WeatherApp
 import com.weather.databinding.ItemWeekWeatherBinding
 import com.weather.domain.model.weather.WeatherDataDaily
 
+private const val FIRST_LETTER = 0
+private const val LAST_LETTER = 3
+
 class DaysAdapter: RecyclerView.Adapter<DaysAdapter.WeatherViewHolder> () {
     var weathers: List<WeatherDataDaily> = emptyList()
     set(newValue){
@@ -45,7 +48,7 @@ class DaysAdapter: RecyclerView.Adapter<DaysAdapter.WeatherViewHolder> () {
             minTempText.text = minTemperatureFormatted
 
             val dayOfMonth = weather.dayOfWeek.dayOfMonth
-            val dayOfWeek = weather.dayOfWeek.dayOfWeek.toString().substring(0, 3)
+            val dayOfWeek = weather.dayOfWeek.dayOfWeek.toString().substring(FIRST_LETTER, LAST_LETTER)
             dateText.text = WeatherApp.context.getString(R.string.day_month, dayOfMonth.toString(), dayOfWeek)
         }
     }

@@ -1,11 +1,12 @@
 package com.weather.ui.home
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SearchView
+import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -31,8 +32,16 @@ class HomeFragment : Fragment() {
             recyclerview.adapter = adapter
         }
 
+
         viewModel.city.observe(viewLifecycleOwner, Observer {
             binding.cityText.text = it
+        })
+
+        viewModel.errorMessage.observe(viewLifecycleOwner, Observer {
+            if (it != null) {
+                Toast.makeText(requireActivity(), it, Toast.LENGTH_SHORT).show()
+                viewModel.clearErrorMessage()
+            }
         })
 
         viewModel.loadingState.observe(viewLifecycleOwner, Observer { isLoading ->
@@ -86,9 +95,9 @@ class HomeFragment : Fragment() {
         })
 
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                if(!query.isNullOrBlank()) {
-                    viewModel.loadLocation(query)
+            override fun onQueryTextSubmit(city: String?): Boolean {
+                if(!city.isNullOrBlank()) {
+                    viewModel.loadLocation(city)
                 }
                 return false
             }

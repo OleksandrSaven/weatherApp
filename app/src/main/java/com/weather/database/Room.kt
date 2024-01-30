@@ -26,8 +26,8 @@ interface WeatherDailyDao {
     @Query("SELECT * FROM weather_daily")
     suspend fun getAllDailyData(): List<WeatherDailyEntity>
 
-    @Query("DELETE FROM weather_daily")
-    suspend fun deleteAll()
+    @Query("DELETE FROM weather_daily WHERE time < :currentDate")
+    suspend fun deleteAll(currentDate: String)
 }
 
 @Database(entities = [WeatherHourlyEntity::class, WeatherDailyEntity::class], version = 1)

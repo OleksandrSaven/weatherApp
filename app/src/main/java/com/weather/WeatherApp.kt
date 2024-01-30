@@ -2,7 +2,6 @@ package com.weather
 
 import android.app.Application
 import android.content.Context
-import android.os.Build
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
@@ -32,11 +31,9 @@ class WeatherApp : Application() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.UNMETERED)
             .setRequiresBatteryNotLow(true)
-            .setRequiresCharging(true)
-            .apply { if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                setRequiresDeviceIdle(true)
-                }
-            }.build()
+            //.setRequiresCharging(true)
+            .setRequiresDeviceIdle(true)
+            .build()
 
                val repeatingRequest = PeriodicWorkRequestBuilder<RefreshDataWorker>(1,
            TimeUnit.DAYS)

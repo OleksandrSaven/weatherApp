@@ -8,7 +8,8 @@ import com.weather.domain.util.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-const val FIRST_CITY = 0
+private const val FIRST_CITY = 0
+private const val ERROR_MESSAGE = "It is not possible to determine the location, check connection..."
 
 class PlaceRepository(
 ): PlaceRepository {
@@ -21,8 +22,7 @@ class PlaceRepository(
             )
         } catch (e: Exception) {
             e.printStackTrace()
-            Resource.Error( "It is not possible to determine the location," +
-                    " check connection..." )
+            Resource.Error(ERROR_MESSAGE)
             }
         }
     }

@@ -50,8 +50,9 @@ class WeatherRepository() {
         }
     }
 
-    suspend fun deleteAllWeatherData(context: Context) {
-        database.getInstance(context).weatherDailyDao().deleteAll()
+    suspend fun deleteOldWeatherDailyData(context: Context) {
+        val currentDate = LocalDate.now().toString()
+        database.getInstance(context).weatherDailyDao().deleteAll(currentDate)
     }
 
     suspend fun getWeatherData(lat: Double, long: Double): Resource<WeatherInfo> {
