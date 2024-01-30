@@ -37,17 +37,3 @@ fun List<WeatherDailyEntity>.toDomainModel(): List<WeatherDataDaily> {
         )
     }
 }
-
-
-/* fun List<WeatherHourlyEntity>.toDomainModel(): List<WeatherDataHourly>{
-     return map {
-         WeatherDataHourly(
-             time = LocalDateTime.parse(it.time, DateTimeFormatter.ISO_DATE_TIME),
-             temperature = it.temperature,
-             pressure = it.pressure,
-             windSpeed = it.windSpeed,
-             humidity = it.humidity,
-             weatherType = WeatherType.fromWMO(it.weatherType)
-         )
-     }
- }*/

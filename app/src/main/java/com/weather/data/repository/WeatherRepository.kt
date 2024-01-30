@@ -4,15 +4,14 @@ package com.weather.data.repository
 import android.content.Context
 import com.weather.WeatherApp
 import com.weather.data.mapper.toWeatherDailyEntity
-import com.weather.data.mapper.toWeatherData
 import com.weather.data.mapper.toWeatherHourlyEntity
 import com.weather.data.network.service.WeatherApiService
 import com.weather.data.network.weaher.WeatherDailyDto
+import com.weather.data.network.weaher.WeatherDto
 import com.weather.data.network.weaher.WeatherHourlyDto
 import com.weather.database.WeatherDailyEntity
 import com.weather.database.WeatherDatabase
 import com.weather.database.WeatherHourlyEntity
-import com.weather.domain.model.weather.WeatherInfo
 import com.weather.domain.util.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -55,14 +54,12 @@ class WeatherRepository() {
         database.getInstance(context).weatherDailyDao().deleteAll(currentDate)
     }
 
-    suspend fun getWeatherData(lat: Double, long: Double): Resource<WeatherInfo> {
+    suspend fun getWeatherData(lat: Double, long: Double): Resource<WeatherDto> {
         return withContext(Dispatchers.IO) {
            try {
                 Resource.Success(
-                    data = WeatherApiService.retrofitService.getWeatherData(
-                        lat = lat,
-                        long = long
-                    ).toWeatherData()
+                    data = WeatherApiService.retrofitService.getWeatherData
+                        (lat = lat, long = long)
                 )
             } catch (e: Exception) {
                 e.printStackTrace()

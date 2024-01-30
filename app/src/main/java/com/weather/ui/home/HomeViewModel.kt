@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.weather.WeatherApp.Companion.context
+import com.weather.data.mapper.toWeatherData
 import com.weather.data.mapper.toWeatherHourly
 import com.weather.data.mapper.toWeatherHourlyDto
 import com.weather.data.network.weaher.WeatherDto
@@ -24,8 +25,10 @@ private const val CITY_NAME = "city_name"
 private const val DEFAULT_CITY = "Kyiv"
 private const val CURRENT_DAY = 0
 private const val INIT_VALUE = 0.0
+private const val OFFLINE_MESSAGE = "Please, check connection you are offline."
 const val LATITUDE = "latitude"
 const val LONGITUDE = "longitude"
+
 
 class HomeViewModel: ViewModel() {
     private val placeRepository = PlaceRepository()
@@ -63,6 +66,7 @@ class HomeViewModel: ViewModel() {
     init {
         if (!isOnline()) {
             loadCacheWeather()
+            _errorMessage.value = OFFLINE_MESSAGE
         } else {
             sharedPreferences.getString(CITY_NAME, DEFAULT_CITY).let {
                 if (it != null) {
@@ -90,16 +94,20 @@ class HomeViewModel: ViewModel() {
             _loadingState.value = false
         }
     }
-
+    fun clearErrorMessage() {
+        _errorMessage.value = null
+    }
+    
     private fun loadWeatherInfo(latitude: Double, longitude: Double) {
         viewModelScope.launch {
             when(val result = weatherRepository.getWeatherData(latitude, longitude)) {
                 is Resource.Success -> {
                     val weather = result.data
                     if(weather != null) {
-                        _hourly.value = weather.weatherDataPerDay[CURRENT_DAY]
-                        _currentValue.value = weather.currentWeatherData
-                        _weatherByDaily.value = weather.weatherDatePerWeek.values.flatten()
+                        _hourly.value = weather.toWeatherData().weatherDataPerDay[CURRENT_DAY]
+                        _currentValue.value = weather.toWeatherData().currentWeatherData
+                        _weatherByDaily.value = weather.toWeatherData().weatherDatePerWeek.values.flatten()
+                        saveWeatherToDatabase(weather)
                     }
                 }
                 is Resource.Error -> {
@@ -111,15 +119,16 @@ class HomeViewModel: ViewModel() {
 
     private fun loadCacheWeather() {
         viewModelScope.launch {
-            val now = LocalDateTime.now()
+            _loadingState.value = true
             val allWeatherDailyEntities = weatherRepository.getAllWeatherDailyEntities(context)
-            val allWeatherHourlyEntities = weatherRepository.getAllWeatherHourlyEntities(context).toWeatherHourlyDto()
-
-            _city.value = sharedPreferences.getString(CITY_NAME, DEFAULT_CITY)
             _weatherByDaily.value = allWeatherDailyEntities.toDomainModel()
+            _city.value = sharedPreferences.getString(CITY_NAME, DEFAULT_CITY)
 
-            _hourly.value = allWeatherHourlyEntities.toWeatherHourly()[CURRENT_DAY]
-            _currentValue.value = allWeatherHourlyEntities.toWeatherHourly()[CURRENT_DAY]?.find {
+            val weatherHourlyDto = weatherRepository.getAllWeatherHourlyEntities(context).toWeatherHourlyDto()
+            _hourly.value = weatherHourlyDto.toWeatherHourly()[CURRENT_DAY]
+
+            _currentValue.value = weatherHourlyDto.toWeatherHourly()[CURRENT_DAY]?.find {
+                val now = LocalDateTime.now()
                 val hour = when {
                     now.minute < 30 -> now.hour
                     now.hour == 23 -> 23
@@ -127,8 +136,10 @@ class HomeViewModel: ViewModel() {
                 }
                 it.time.hour == hour
             }
+            _loadingState.value = false
         }
     }
+
 
     private suspend fun saveWeatherToDatabase(weatherDto: WeatherDto) {
         weatherRepository.saveWeatherHourlyData(weatherDto.weatherHourly)
@@ -141,10 +152,7 @@ class HomeViewModel: ViewModel() {
         val netInfo = connectivityManager.activeNetworkInfo
         return netInfo != null && netInfo.isConnectedOrConnecting
     }
-    fun clearErrorMessage() {
-        _errorMessage.value = null
-    }
-
+    
     private fun setupData(place: Place) {
         latitude = place.location.lat
         longitude = place.location.long
@@ -154,4 +162,3 @@ class HomeViewModel: ViewModel() {
         sharedPreferences.edit().putFloat(LONGITUDE, longitude.toFloat()).apply()
     }
 }
-

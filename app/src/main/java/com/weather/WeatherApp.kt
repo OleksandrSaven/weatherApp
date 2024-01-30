@@ -13,6 +13,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
+private const val REPEAT_INTERVAL = 1L
+
 class WeatherApp : Application() {
     private val applicationScope = CoroutineScope(Dispatchers.Default)
     override fun onCreate() {
@@ -35,8 +37,8 @@ class WeatherApp : Application() {
             .setRequiresDeviceIdle(true)
             .build()
 
-               val repeatingRequest = PeriodicWorkRequestBuilder<RefreshDataWorker>(1,
-           TimeUnit.DAYS)
+               val repeatingRequest = PeriodicWorkRequestBuilder<RefreshDataWorker>(
+                   REPEAT_INTERVAL, TimeUnit.DAYS)
                    .setConstraints(constraints)
                    .build()
 
