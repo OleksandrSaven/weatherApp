@@ -8,15 +8,15 @@ sealed class WeatherType(
     @DrawableRes
     val iconId: Int
 ){
-    object MainlyClear: WeatherType(
+    data object MainlyClear: WeatherType(
         description = "Mainly clear",
         iconId = R.drawable.ic_cloudy
     )
-    object ClearSky : WeatherType(
+    data object ClearSky : WeatherType(
         description = "Clear sky",
         iconId = R.drawable.ic_sunny
     )
-    object PartlyCloudy : WeatherType(
+    data object PartlyCloudy : WeatherType(
         description =" Party Cloud",
         iconId = R.drawable.ic_cloudy
     )

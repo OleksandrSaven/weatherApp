@@ -1,10 +1,10 @@
 package com.weather.ui.weekly
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,7 +21,7 @@ class WeekFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         adapter = DaysAdapter()
         val manager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-        viewModel.days.observe(viewLifecycleOwner, Observer {
+        viewModel.weatherByDaily.observe(viewLifecycleOwner, Observer {
             adapter.weathers = it
         })
         binding.apply {

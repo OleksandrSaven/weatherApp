@@ -14,9 +14,4 @@
         android:name="com.weather.ui.weekly.WeekFragment"
         android:label="fragment_week"
         tools:layout="@layout/fragment_week" />
-    <fragment
-        android:id="@+id/settingsFragment"
-        android:name="com.weather.ui.settings.SettingsFragment"
-        android:label="fragment_settings"
-        tools:layout="@layout/fragment_settings" />
 </navigation>

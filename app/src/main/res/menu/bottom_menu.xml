@@ -10,8 +10,4 @@
         android:title="Week"
         android:icon="@drawable/baseline_calendar_month_24"/>
 
-    <item
-        android:id="@+id/settingsFragment"
-        android:title="Settings"
-        android:icon="@drawable/baseline_settings_24"/>
 </menu>

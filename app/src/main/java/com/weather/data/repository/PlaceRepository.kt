@@ -13,7 +13,7 @@ const val FIRST_CITY = 0
 class PlaceRepository(
 ): PlaceRepository {
     override suspend fun getPlace(name: String): Resource<Place> {
-        return withContext(Dispatchers.IO){
+        return withContext(Dispatchers.IO) {
         try {
             val response = PlaceApiService.retrofitService.getLocation(name)
             Resource.Success(
@@ -22,7 +22,7 @@ class PlaceRepository(
         } catch (e: Exception) {
             e.printStackTrace()
             Resource.Error( "It is not possible to determine the location," +
-                    " check the correctness of the entered data." )
+                    " check connection..." )
             }
         }
     }

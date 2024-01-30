@@ -1,20 +1,21 @@
 package com.weather.ui.home
 
 import android.content.Context
+import android.net.ConnectivityManager
 import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.weather.WeatherApp
 import com.weather.WeatherApp.Companion.context
 import com.weather.data.mapper.toWeatherData
 import com.weather.data.mapper.toWeatherHourly
 import com.weather.data.mapper.toWeatherHourlyDto
 import com.weather.data.network.service.WeatherApiService
+import com.weather.data.network.weaher.WeatherDto
 import com.weather.data.repository.PlaceRepository
 import com.weather.data.repository.WeatherRepository
-import com.weather.db.WeatherDatabase
+import com.weather.database.toDomainModel
 import com.weather.domain.model.weather.WeatherDataDaily
 import com.weather.domain.model.weather.WeatherDataHourly
 import com.weather.domain.util.Resource
@@ -24,14 +25,16 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 
 
+const val CITY_NAME = "city_name"
+const val DEFAULT_CITY = "Kyiv"
+const val LATITUDE = "latitude"
+const val LONGITUDE = "longitude"
+
 class HomeViewModel: ViewModel() {
     private val placeRepository = PlaceRepository()
+    private val weatherRepository = WeatherRepository()
     private val sharedPreferences = context.getSharedPreferences("my_preferences",
         Context.MODE_PRIVATE)
-
-    private val database = WeatherDatabase.getInstance(WeatherApp.context)
-    private val hourlyDao = database.weatherHourlyDao()
-    private val repository = WeatherRepository(hourlyDao)
 
     private var latitude: Double = 0.0
     private var longitude: Double = 0.0
@@ -44,9 +47,9 @@ class HomeViewModel: ViewModel() {
     val city: LiveData<String>
         get() = _city
 
-    private var _daily = MutableLiveData<List<WeatherDataDaily>>()
-    val days: LiveData<List<WeatherDataDaily>>
-        get() = _daily
+    private var _weatherByDaily = MutableLiveData<List<WeatherDataDaily>>()
+    val weatherByDaily: LiveData<List<WeatherDataDaily>>
+        get() = _weatherByDaily
 
     private var _currentValue = MutableLiveData<WeatherDataHourly?>()
     val currentHour: LiveData<WeatherDataHourly?>
@@ -57,7 +60,14 @@ class HomeViewModel: ViewModel() {
         get() = _hourly
 
     init {
-        loadCacheWeather()
+        if (!isOnline()) {
+            loadCacheWeather()
+        }
+        sharedPreferences.getString(CITY_NAME, DEFAULT_CITY).let {
+            if (it != null) {
+                loadLocation(it)
+            }
+        }
     }
 
     fun loadLocation(city: String) {
@@ -70,13 +80,14 @@ class HomeViewModel: ViewModel() {
                         latitude = place.location.lat
                         longitude = place.location.long
                         _city.value = place.name
-                        sharedPreferences.edit().putString("city_name", place.name).apply()
+                        sharedPreferences.edit().putString(CITY_NAME, place.name).apply()
+                        sharedPreferences.edit().putFloat(LATITUDE, latitude.toFloat()).apply()
+                        sharedPreferences.edit().putFloat(LONGITUDE, longitude.toFloat()).apply()
                         loadWeatherInfo(latitude, longitude)
                     }
                 }
                 is Resource.Error -> {
                     val errorMessage = result.message
-
                     Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
                 }
             }
@@ -90,25 +101,27 @@ class HomeViewModel: ViewModel() {
                 WeatherApiService.retrofitService.getWeatherData(latitude, longitude)
             }
             try {
-                repository.saveWeatherHourlyData(result.weatherHourly, hourlyDao)
                 _hourly.value = result.toWeatherData().weatherDataPerDay[0]
-                _daily.value = result.toWeatherData().weatherDatePerWeek.values.flatten()
+                _weatherByDaily.value = result.toWeatherData().weatherDatePerWeek.values.flatten()
                 _currentValue.value = result.toWeatherData().currentWeatherData
+                saveWeatherToDatabase(result)
             } catch (e : Exception){
                 _hourly.value = ArrayList()
-                _daily.value = ArrayList()
+                _weatherByDaily.value = ArrayList()
             }
         }
     }
 
-
     private fun loadCacheWeather() {
         viewModelScope.launch {
-            val allWeatherHourlyEntities = repository
-                .getAllWeatherHourlyEntities(context).toWeatherHourlyDto()
-
-            _hourly.value = allWeatherHourlyEntities.toWeatherHourly().values.flatten()
             val now = LocalDateTime.now()
+            val allWeatherDailyEntities = weatherRepository.getAllWeatherDailyEntities(context)
+            val allWeatherHourlyEntities = weatherRepository.getAllWeatherHourlyEntities(context).toWeatherHourlyDto()
+
+            _weatherByDaily.value = allWeatherDailyEntities.toDomainModel()
+
+            _city.value = sharedPreferences.getString(CITY_NAME, DEFAULT_CITY)
+            _hourly.value = allWeatherHourlyEntities.toWeatherHourly()[0]
             _currentValue.value = allWeatherHourlyEntities.toWeatherHourly()[0]?.find {
                 val hour = when {
                     now.minute < 30 -> now.hour
@@ -117,7 +130,18 @@ class HomeViewModel: ViewModel() {
                 }
                 it.time.hour == hour
             }
-            _city.value = sharedPreferences.getString("city_name", "An know")
         }
+    }
+
+    private suspend fun saveWeatherToDatabase(weatherDto: WeatherDto) {
+        weatherRepository.saveWeatherHourlyData(weatherDto.weatherHourly)
+        weatherRepository.saveWeatherDailyDate(weatherDto.weatherDaily)
+    }
+
+    private fun isOnline(): Boolean {
+        val connectivityManager = context
+            .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val netInfo = connectivityManager.activeNetworkInfo
+        return netInfo != null && netInfo.isConnectedOrConnecting
     }
 }
