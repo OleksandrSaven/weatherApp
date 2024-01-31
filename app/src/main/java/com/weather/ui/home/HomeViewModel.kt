@@ -121,7 +121,9 @@ class HomeViewModel: ViewModel() {
         viewModelScope.launch {
             _loadingState.value = true
             val allWeatherDailyEntities = weatherRepository.getAllWeatherDailyEntities(context)
-            _weatherByDaily.value = allWeatherDailyEntities.toDomainModel()
+            _weatherByDaily.value = allWeatherDailyEntities.map {
+                    weatherDailyEntity -> weatherDailyEntity.toDomainModel()
+            }
             _city.value = sharedPreferences.getString(CITY_NAME, DEFAULT_CITY)
 
             val weatherHourlyDto = weatherRepository.getAllWeatherHourlyEntities(context).toWeatherHourlyDto()

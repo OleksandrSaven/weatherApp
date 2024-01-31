@@ -27,13 +27,10 @@ data class WeatherDailyEntity(
     val maxTemperature: Double
 )
 
-fun List<WeatherDailyEntity>.toDomainModel(): List<WeatherDataDaily> {
-    return map {
-        WeatherDataDaily(
-            dayOfWeek = LocalDate.parse(it.time, DateTimeFormatter.ISO_DATE),
-            weatherType = WeatherType.fromWMO(it.weatherCode),
-            maxTemperature = it.maxTemperature,
-            minTemperature = it.minTemperature
-        )
-    }
+fun WeatherDailyEntity.toDomainModel(): WeatherDataDaily {
+    return  WeatherDataDaily(
+        dayOfWeek = LocalDate.parse(this.time, DateTimeFormatter.ISO_DATE),
+        weatherType = WeatherType.fromWMO(this.weatherCode),
+        maxTemperature = this.maxTemperature,
+        minTemperature = this.minTemperature)
 }
