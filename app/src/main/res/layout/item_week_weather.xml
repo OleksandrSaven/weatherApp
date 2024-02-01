@@ -15,6 +15,7 @@
 
         <ImageView
             android:id="@+id/picture"
+            android:contentDescription="@string/pictures"
 
             android:layout_width="300dp"
             android:layout_height="match_parent"
@@ -35,14 +36,14 @@
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
                 android:textColor="@color/black"
-                android:text="Fri 27"
+                android:text="@string/fri_27"
                 android:layout_margin="2dp" />
 
             <TextView
                 android:id="@+id/maxTempText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Max - 2 °C "
+                android:text="@string/max_2_c"
                 android:textColor="@color/black"
                 android:textSize="14sp"
                 android:layout_margin="2dp" />
@@ -51,13 +52,10 @@
                 android:id="@+id/minTempText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Min - 2 °C "
+                android:text="@string/min_2_c"
                 android:textColor="@color/black"
                 android:textSize="14sp"
                 android:layout_margin="2dp" />
-
-
-            " />
         </LinearLayout>
 
 

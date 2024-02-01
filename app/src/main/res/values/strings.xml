@@ -16,4 +16,8 @@
     <string name="wind_format">"%s km/h"</string>
     <string name="today_format">Today %s</string>
     <string name="day_month">%1$s %2$s</string>
+    <string name="fri_27">Fri 27</string>
+    <string name="max_2_c">Max - 2 °C</string>
+    <string name="min_2_c">Min - 2 °C</string>
+    <string name="pictures">pictures</string>
 </resources>
