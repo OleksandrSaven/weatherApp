@@ -11,8 +11,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.weather.R
-import com.weather.data.adapters.HourlyAdapter
 import com.weather.databinding.FragmentHomeBinding
+import com.weather.ui.adapters.HourlyAdapter
 import java.time.format.DateTimeFormatter
 
 class HomeFragment : Fragment() {
@@ -24,16 +24,36 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val manager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         adapter = HourlyAdapter()
-        viewModel.weatherByHourly.observe(viewLifecycleOwner, Observer {
-            adapter.weathers = it
-        })
         binding.apply {
             recyclerview.layoutManager = manager
             recyclerview.adapter = adapter
         }
 
+        viewModel.weatherState.observe(viewLifecycleOwner, Observer {
+            adapter.weathers = it.weatherByHourly
 
-        viewModel.city.observe(viewLifecycleOwner, Observer {
+            binding.cityText.text  = it.city
+
+
+            if (it.errorMessage != null) {
+                Toast.makeText(requireActivity(), it.errorMessage, Toast.LENGTH_SHORT).show()
+                viewModel.clearErrorMessage()
+            }
+            if(it.loadingState){
+                binding.progressBar4.visibility = View.VISIBLE
+                binding.searchView.visibility = View.GONE
+                binding.frameLayout.visibility = View.GONE
+                binding.recyclerview.visibility = View.GONE
+            } else {
+                binding.progressBar4.visibility = View.GONE
+                binding.searchView.visibility = View.VISIBLE
+                binding.frameLayout.visibility = View.VISIBLE
+                binding.recyclerview.visibility = View.VISIBLE
+
+            }
+        })
+
+     /*   viewModel.city.observe(viewLifecycleOwner, Observer {
             binding.cityText.text = it
         })
 
@@ -43,6 +63,7 @@ class HomeFragment : Fragment() {
                 viewModel.clearErrorMessage()
             }
         })
+
 
         viewModel.loadingState.observe(viewLifecycleOwner, Observer { isLoading ->
             if(isLoading) {
@@ -57,7 +78,7 @@ class HomeFragment : Fragment() {
                 binding.recyclerview.visibility = View.VISIBLE
             }
         })
-
+*/
 
         viewModel.currentHour.observe(viewLifecycleOwner, Observer {
             binding.apply {
@@ -65,8 +86,7 @@ class HomeFragment : Fragment() {
                     imageView.setImageResource(it.weatherType.iconId)
 
                     val today = it.time.format(DateTimeFormatter.ofPattern("HH:mm"))
-                    val todayFormatter = resources.getString(R.string.today_format,
-                        today.toString())
+                    val todayFormatter = resources.getString(R.string.today_format, today.toString())
                     todayText.text = todayFormatter
 
                     val temperature = it.temperature

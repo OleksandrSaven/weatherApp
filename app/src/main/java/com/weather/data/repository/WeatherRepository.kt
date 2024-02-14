@@ -1,70 +1,23 @@
 package com.weather.data.repository
 
-
-import android.content.Context
-import com.weather.WeatherApp
-import com.weather.data.mapper.toWeatherDailyEntity
-import com.weather.data.mapper.toWeatherHourlyEntity
-import com.weather.data.network.service.WeatherApiService
 import com.weather.data.network.weaher.WeatherDailyDto
 import com.weather.data.network.weaher.WeatherDto
 import com.weather.data.network.weaher.WeatherHourlyDto
 import com.weather.database.WeatherDailyEntity
-import com.weather.database.WeatherDatabase
 import com.weather.database.WeatherHourlyEntity
 import com.weather.domain.util.Resource
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.time.LocalDate
 
-class WeatherRepository() {
-    private val database = WeatherDatabase
+interface WeatherRepository {
 
-    suspend fun saveWeatherHourlyData(weatherHourlyDto: WeatherHourlyDto) {
-        withContext(Dispatchers.IO) {
-            val weatherHourlyEntities = weatherHourlyDto.toWeatherHourlyEntity()
-            database.getInstance(WeatherApp.context)
-                .weatherHourlyDao().insertHourly(weatherHourlyEntities)
-        }
-    }
+    suspend fun saveWeatherHourlyData(weatherHourlyDto: WeatherHourlyDto)
 
-    suspend fun saveWeatherDailyDate(weatherDailyDto: WeatherDailyDto) {
-        withContext(Dispatchers.IO) {
-            val weatherDailyEntities = weatherDailyDto.toWeatherDailyEntity()
-            database.getInstance(WeatherApp.context)
-                .weatherDailyDao().insertDaily(weatherDailyEntities)
-        }
-    }
+    suspend fun saveWeatherDailyDate(weatherDailyDto: WeatherDailyDto)
 
-    suspend fun getAllWeatherHourlyEntities(context: Context): List<WeatherHourlyEntity> {
-        return withContext(Dispatchers.IO) {
-            val currentDate = LocalDate.now().toString()
-            database.getInstance(context).weatherHourlyDao().getAllHourlyData(currentDate)
-        }
-    }
+    suspend fun getAllWeatherHourlyEntities(): List<WeatherHourlyEntity>
 
-    suspend fun getAllWeatherDailyEntities(context: Context): List<WeatherDailyEntity> {
-        return withContext(Dispatchers.IO) {
-           database.getInstance(context).weatherDailyDao().getAllDailyData()
-        }
-    }
+    suspend fun getAllWeatherDailyEntities(): List<WeatherDailyEntity>
 
-    suspend fun deleteOldWeatherDailyData(context: Context) {
-        val currentDate = LocalDate.now().toString()
-        database.getInstance(context).weatherDailyDao().deleteAll(currentDate)
-    }
+    suspend fun deleteOldWeatherDailyData()
 
-    suspend fun getWeatherData(lat: Double, long: Double): Resource<WeatherDto> {
-        return withContext(Dispatchers.IO) {
-           try {
-                Resource.Success(
-                    data = WeatherApiService.retrofitService.getWeatherData
-                        (lat = lat, long = long)
-                )
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Resource.Error(e.message ?: "An unknown error.")
-            }
-        }
-    }
+    suspend fun getWeatherData(lat: Double, long: Double): Resource<WeatherDto>
 }
