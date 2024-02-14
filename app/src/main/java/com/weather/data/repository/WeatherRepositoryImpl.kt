@@ -10,14 +10,16 @@ import com.weather.database.WeatherDailyDao
 import com.weather.database.WeatherDailyEntity
 import com.weather.database.WeatherHourlyDao
 import com.weather.database.WeatherHourlyEntity
-import com.weather.domain.util.Resource
+import com.weather.domain.repository.WeatherRepository
+import com.weather.util.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import javax.inject.Inject
 
 class WeatherRepositoryImpl @Inject constructor(private val  hourlyDao: WeatherHourlyDao,
-                                                private val dailyDao: WeatherDailyDao): WeatherRepository {
+                                                private val dailyDao: WeatherDailyDao):
+    WeatherRepository {
 
     override suspend fun saveWeatherHourlyData(weatherHourlyDto: WeatherHourlyDto) {
         withContext(Dispatchers.IO) {

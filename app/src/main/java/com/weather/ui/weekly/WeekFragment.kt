@@ -12,23 +12,17 @@ import com.weather.databinding.FragmentWeekBinding
 import com.weather.ui.adapters.DaysAdapter
 import com.weather.ui.home.HomeViewModel
 
-class WeekFragment : Fragment() {
+class WeekFragment: Fragment() {
     private val viewModel: HomeViewModel by activityViewModels()
     private lateinit var binding: FragmentWeekBinding
     private lateinit var adapter: DaysAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        adapter = DaysAdapter()
-        val manager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-
+        setupRecyclerView()
         viewModel.weatherByDaily.observe(viewLifecycleOwner, Observer {
             adapter.weathers = it
         })
-        binding.apply {
-            recyclerView.layoutManager = manager
-            recyclerView.adapter = adapter
-        }
     }
 
     override fun onCreateView(
@@ -37,5 +31,14 @@ class WeekFragment : Fragment() {
     ): View {
         binding = FragmentWeekBinding.inflate(inflater)
         return binding.root
+    }
+
+    private fun setupRecyclerView() {
+        adapter = DaysAdapter()
+        val manager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+        binding.apply {
+            recyclerView.layoutManager = manager
+            recyclerView.adapter = adapter
+        }
     }
 }

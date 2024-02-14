@@ -15,7 +15,8 @@ private const val DEFAULT_VALUE = 0.0F
 private const val PREF_CITY = "my_preferences"
 
 
-class RefreshDataWorker @Inject constructor(private val weatherRepository: WeatherRepositoryImpl,
+class RefreshDataWorker @Inject constructor(
+    private val weatherRepository: WeatherRepositoryImpl,
                                             appContext: Context,
                                             params: WorkerParameters): CoroutineWorker(appContext, params) {
 
