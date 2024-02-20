@@ -7,68 +7,56 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.weather.WeatherApp.Companion.context
+import com.weather.data.constants.AppConstants
+import com.weather.data.database.entity.toDomainModel
 import com.weather.data.mapper.toWeatherData
 import com.weather.data.mapper.toWeatherHourly
 import com.weather.data.mapper.toWeatherHourlyDto
 import com.weather.data.network.weaher.WeatherDto
-import com.weather.data.repository.PlaceRepository
-import com.weather.data.repository.WeatherRepository
-import com.weather.database.toDomainModel
 import com.weather.domain.model.place.Place
 import com.weather.domain.model.weather.WeatherDataDaily
 import com.weather.domain.model.weather.WeatherDataHourly
-import com.weather.domain.util.Resource
+import com.weather.domain.model.weather.WeatherState
+import com.weather.domain.repository.PlaceRepository
+import com.weather.domain.repository.WeatherRepository
+import com.weather.util.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import javax.inject.Inject
 
-private const val CITY_NAME = "city_name"
-private const val DEFAULT_CITY = "Kyiv"
 private const val CURRENT_DAY = 0
 private const val INIT_VALUE = 0.0
-private const val OFFLINE_MESSAGE = "Please, check connection you are offline."
 const val LATITUDE = "latitude"
 const val LONGITUDE = "longitude"
 
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val weatherRepository: WeatherRepository,
+    private val placeRepository: PlaceRepository
+): ViewModel() {
 
-class HomeViewModel: ViewModel() {
-    private val placeRepository = PlaceRepository()
-    private val weatherRepository = WeatherRepository()
     private val sharedPreferences = context.getSharedPreferences("my_preferences",
         Context.MODE_PRIVATE)
 
     private var latitude: Double = INIT_VALUE
     private var longitude: Double = INIT_VALUE
 
-    private var _loadingState = MutableLiveData<Boolean>()
-    val loadingState: LiveData<Boolean>
-        get() = _loadingState
-
-    private var _city = MutableLiveData<String>()
-    val city: LiveData<String>
-        get() = _city
-
-    private var _errorMessage = MutableLiveData<String?>()
-    val errorMessage: LiveData<String?>
-        get() = _errorMessage
+    private val _weatherState = MutableLiveData<WeatherState>()
+    val weatherState : LiveData<WeatherState>
+        get() = _weatherState
 
     private var _weatherByDaily = MutableLiveData<List<WeatherDataDaily>>()
     val weatherByDaily: LiveData<List<WeatherDataDaily>>
         get() = _weatherByDaily
 
-    private var _currentValue = MutableLiveData<WeatherDataHourly?>()
-    val currentHour: LiveData<WeatherDataHourly?>
-        get() = _currentValue
-
-    private var _hourly = MutableLiveData<List<WeatherDataHourly>>()
-    val weatherByHourly: LiveData<List<WeatherDataHourly>>
-        get() = _hourly
 
     init {
         if (!isOnline()) {
             loadCacheWeather()
-            _errorMessage.value = OFFLINE_MESSAGE
+            _weatherState.value?.errorMessage = AppConstants.OFFLINE_MESSAGE
         } else {
-            sharedPreferences.getString(CITY_NAME, DEFAULT_CITY).let {
+            sharedPreferences.getString(AppConstants.CITY_NAME, AppConstants.DEFAULT_CITY).let {
                 if (it != null) {
                     loadLocation(it)
                 }
@@ -78,7 +66,7 @@ class HomeViewModel: ViewModel() {
 
     fun loadLocation(city: String) {
         viewModelScope.launch {
-            _loadingState.value = true
+            updateLoadingStatus(true)
             when(val result = placeRepository.getPlace(city)) {
                 is Resource.Success -> {
                     val place = result.data
@@ -88,14 +76,15 @@ class HomeViewModel: ViewModel() {
                     }
                 }
                 is Resource.Error -> {
-                     _errorMessage.value = result.message
+                    result.message?.let { updateErrorMessage(it) }
                 }
             }
-            _loadingState.value = false
+            updateLoadingStatus(false)
         }
     }
+
     fun clearErrorMessage() {
-        _errorMessage.value = null
+        updateErrorMessage(null)
     }
     
     private fun loadWeatherInfo(latitude: Double, longitude: Double) {
@@ -104,14 +93,14 @@ class HomeViewModel: ViewModel() {
                 is Resource.Success -> {
                     val weather = result.data
                     if(weather != null) {
-                        _hourly.value = weather.toWeatherData().weatherDataPerDay[CURRENT_DAY]
-                        _currentValue.value = weather.toWeatherData().currentWeatherData
+                        updateWeatherByHourly(weather.toWeatherData().weatherDataPerDay[CURRENT_DAY]!!)
+                        updateWeatherCurrentValue(weather.toWeatherData().currentWeatherData!!)
                         _weatherByDaily.value = weather.toWeatherData().weatherDatePerWeek.values.flatten()
                         saveWeatherToDatabase(weather)
                     }
                 }
                 is Resource.Error -> {
-                    _errorMessage.value = result.message
+                    updateErrorMessage(result.message)
                 }
             }
         }
@@ -119,17 +108,15 @@ class HomeViewModel: ViewModel() {
 
     private fun loadCacheWeather() {
         viewModelScope.launch {
-            _loadingState.value = true
-            val allWeatherDailyEntities = weatherRepository.getAllWeatherDailyEntities(context)
+            updateLoadingStatus(true)
+            val allWeatherDailyEntities = weatherRepository.getAllWeatherDailyEntities()
             _weatherByDaily.value = allWeatherDailyEntities.map {
                     weatherDailyEntity -> weatherDailyEntity.toDomainModel()
             }
-            _city.value = sharedPreferences.getString(CITY_NAME, DEFAULT_CITY)
-
-            val weatherHourlyDto = weatherRepository.getAllWeatherHourlyEntities(context).toWeatherHourlyDto()
-            _hourly.value = weatherHourlyDto.toWeatherHourly()[CURRENT_DAY]
-
-            _currentValue.value = weatherHourlyDto.toWeatherHourly()[CURRENT_DAY]?.find {
+            sharedPreferences.getString(AppConstants.CITY_NAME, AppConstants.DEFAULT_CITY)?.let { updateCity(it) }
+            val weatherHourlyDto = weatherRepository.getAllWeatherHourlyEntities().toWeatherHourlyDto()
+            weatherHourlyDto.toWeatherHourly()[CURRENT_DAY]?.let { updateWeatherByHourly(it) }
+            weatherHourlyDto.toWeatherHourly()[CURRENT_DAY]?.find {
                 val now = LocalDateTime.now()
                 val hour = when {
                     now.minute < 30 -> now.hour
@@ -137,11 +124,10 @@ class HomeViewModel: ViewModel() {
                     else -> now.hour + 1
                 }
                 it.time.hour == hour
-            }
-            _loadingState.value = false
+            }?.let { updateWeatherCurrentValue(it) }
+            updateLoadingStatus(false)
         }
     }
-
 
     private suspend fun saveWeatherToDatabase(weatherDto: WeatherDto) {
         weatherRepository.saveWeatherHourlyData(weatherDto.weatherHourly)
@@ -158,9 +144,39 @@ class HomeViewModel: ViewModel() {
     private fun setupData(place: Place) {
         latitude = place.location.lat
         longitude = place.location.long
-        _city.value = place.name
-        sharedPreferences.edit().putString(CITY_NAME, place.name).apply()
+        updateCity(place.name)
+        sharedPreferences.edit().putString(AppConstants.CITY_NAME, place.name).apply()
         sharedPreferences.edit().putFloat(LATITUDE, latitude.toFloat()).apply()
         sharedPreferences.edit().putFloat(LONGITUDE, longitude.toFloat()).apply()
+    }
+
+    private fun updateCity(city: String) {
+        val currentData = _weatherState.value ?:
+        WeatherState(false, "", null, emptyList(), null)
+        _weatherState.value = currentData.copy(city = city)
+    }
+
+    private fun updateLoadingStatus(loadingStatus: Boolean) {
+        val currentData = _weatherState.value ?:
+        WeatherState(false, "", null, emptyList(), null)
+        _weatherState.value = currentData.copy(loadingState = loadingStatus)
+    }
+
+    private fun updateErrorMessage(errorMessage: String?) {
+        val currentData = _weatherState.value ?:
+        WeatherState(false, "", null, emptyList(), null)
+        _weatherState.value = currentData.copy(errorMessage = errorMessage)
+    }
+
+    private fun updateWeatherByHourly(hourly: List<WeatherDataHourly>) {
+        val currentData = _weatherState.value ?:
+        WeatherState(false, "", null, emptyList(), null)
+        _weatherState.value = currentData.copy(weatherByHourly = hourly)
+    }
+
+    private fun updateWeatherCurrentValue(currentValue: WeatherDataHourly) {
+        val currentData = _weatherState.value ?:
+        WeatherState(false, "", null, emptyList(), null)
+        _weatherState.value = currentData.copy(currentValue = currentValue)
     }
 }

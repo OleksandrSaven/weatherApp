@@ -8,6 +8,7 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.weather.work.RefreshDataWorker
+import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -15,6 +16,7 @@ import java.util.concurrent.TimeUnit
 
 private const val REPEAT_INTERVAL = 1L
 
+@HiltAndroidApp
 class WeatherApp : Application() {
     private val applicationScope = CoroutineScope(Dispatchers.Default)
     override fun onCreate() {

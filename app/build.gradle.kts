@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.dagger.hilt.android")
     id("kotlin-kapt")
 }
 
@@ -43,6 +44,9 @@ android {
         //noinspection DataBindingWithoutKapt
         dataBinding = true
     }
+    kapt {
+        correctErrorTypes = true
+    }
 
 }
 
@@ -84,6 +88,6 @@ dependencies {
 
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
-
-
+    implementation("com.google.dagger:hilt-android:2.50")
+    kapt("com.google.dagger:hilt-android-compiler:2.50")
 }
