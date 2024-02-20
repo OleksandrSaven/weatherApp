@@ -7,11 +7,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.weather.WeatherApp.Companion.context
+import com.weather.data.constants.AppConstants
+import com.weather.data.database.entity.toDomainModel
 import com.weather.data.mapper.toWeatherData
 import com.weather.data.mapper.toWeatherHourly
 import com.weather.data.mapper.toWeatherHourlyDto
 import com.weather.data.network.weaher.WeatherDto
-import com.weather.database.toDomainModel
 import com.weather.domain.model.place.Place
 import com.weather.domain.model.weather.WeatherDataDaily
 import com.weather.domain.model.weather.WeatherDataHourly
@@ -24,11 +25,8 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import javax.inject.Inject
 
-private const val CITY_NAME = "city_name"
-private const val DEFAULT_CITY = "Kyiv"
 private const val CURRENT_DAY = 0
 private const val INIT_VALUE = 0.0
-private const val OFFLINE_MESSAGE = "Please, check connection you are offline."
 const val LATITUDE = "latitude"
 const val LONGITUDE = "longitude"
 
@@ -56,9 +54,9 @@ class HomeViewModel @Inject constructor(
     init {
         if (!isOnline()) {
             loadCacheWeather()
-            _weatherState.value?.errorMessage = OFFLINE_MESSAGE
+            _weatherState.value?.errorMessage = AppConstants.OFFLINE_MESSAGE
         } else {
-            sharedPreferences.getString(CITY_NAME, DEFAULT_CITY).let {
+            sharedPreferences.getString(AppConstants.CITY_NAME, AppConstants.DEFAULT_CITY).let {
                 if (it != null) {
                     loadLocation(it)
                 }
@@ -115,7 +113,7 @@ class HomeViewModel @Inject constructor(
             _weatherByDaily.value = allWeatherDailyEntities.map {
                     weatherDailyEntity -> weatherDailyEntity.toDomainModel()
             }
-            sharedPreferences.getString(CITY_NAME, DEFAULT_CITY)?.let { updateCity(it) }
+            sharedPreferences.getString(AppConstants.CITY_NAME, AppConstants.DEFAULT_CITY)?.let { updateCity(it) }
             val weatherHourlyDto = weatherRepository.getAllWeatherHourlyEntities().toWeatherHourlyDto()
             weatherHourlyDto.toWeatherHourly()[CURRENT_DAY]?.let { updateWeatherByHourly(it) }
             weatherHourlyDto.toWeatherHourly()[CURRENT_DAY]?.find {
@@ -147,7 +145,7 @@ class HomeViewModel @Inject constructor(
         latitude = place.location.lat
         longitude = place.location.long
         updateCity(place.name)
-        sharedPreferences.edit().putString(CITY_NAME, place.name).apply()
+        sharedPreferences.edit().putString(AppConstants.CITY_NAME, place.name).apply()
         sharedPreferences.edit().putFloat(LATITUDE, latitude.toFloat()).apply()
         sharedPreferences.edit().putFloat(LONGITUDE, longitude.toFloat()).apply()
     }

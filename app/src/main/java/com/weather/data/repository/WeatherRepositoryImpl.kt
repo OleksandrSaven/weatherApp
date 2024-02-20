@@ -1,15 +1,16 @@
 package com.weather.data.repository
 
+import com.weather.data.constants.AppConstants
+import com.weather.data.database.dao.WeatherDailyDao
+import com.weather.data.database.dao.WeatherHourlyDao
+import com.weather.data.database.entity.WeatherDailyEntity
+import com.weather.data.database.entity.WeatherHourlyEntity
 import com.weather.data.mapper.toWeatherDailyEntity
 import com.weather.data.mapper.toWeatherHourlyEntity
-import com.weather.data.network.service.WeatherApiService
+import com.weather.data.network.weaher.WeatherApi
 import com.weather.data.network.weaher.WeatherDailyDto
 import com.weather.data.network.weaher.WeatherDto
 import com.weather.data.network.weaher.WeatherHourlyDto
-import com.weather.database.WeatherDailyDao
-import com.weather.database.WeatherDailyEntity
-import com.weather.database.WeatherHourlyDao
-import com.weather.database.WeatherHourlyEntity
 import com.weather.domain.repository.WeatherRepository
 import com.weather.util.Resource
 import kotlinx.coroutines.Dispatchers
@@ -18,8 +19,9 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 class WeatherRepositoryImpl @Inject constructor(private val  hourlyDao: WeatherHourlyDao,
-                                                private val dailyDao: WeatherDailyDao):
-    WeatherRepository {
+                                                private val dailyDao: WeatherDailyDao,
+                                                private val weatherApi: WeatherApi
+): WeatherRepository {
 
     override suspend fun saveWeatherHourlyData(weatherHourlyDto: WeatherHourlyDto) {
         withContext(Dispatchers.IO) {
@@ -57,12 +59,12 @@ class WeatherRepositoryImpl @Inject constructor(private val  hourlyDao: WeatherH
         return withContext(Dispatchers.IO) {
            try {
                 Resource.Success(
-                    data = WeatherApiService.retrofitService.getWeatherData
+                    data = weatherApi.getWeatherData
                         (lat = lat, long = long)
                 )
             } catch (e: Exception) {
                 e.printStackTrace()
-                Resource.Error(e.message ?: "An unknown error.")
+                Resource.Error(e.message ?: AppConstants.AN_KNOWN_ERROR)
             }
         }
     }

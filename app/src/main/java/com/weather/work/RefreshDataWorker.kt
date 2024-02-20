@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.weather.WeatherApp.Companion.context
-import com.weather.data.network.service.WeatherApiService
-import com.weather.data.repository.WeatherRepositoryImpl
+import com.weather.data.network.weaher.WeatherApi
+import com.weather.domain.repository.WeatherRepository
 import com.weather.ui.home.LATITUDE
 import com.weather.ui.home.LONGITUDE
 import retrofit2.HttpException
@@ -15,10 +15,10 @@ private const val DEFAULT_VALUE = 0.0F
 private const val PREF_CITY = "my_preferences"
 
 
-class RefreshDataWorker @Inject constructor(
-    private val weatherRepository: WeatherRepositoryImpl,
-                                            appContext: Context,
-                                            params: WorkerParameters): CoroutineWorker(appContext, params) {
+class RefreshDataWorker @Inject constructor(private val weatherRepository: WeatherRepository,
+                                            private val weatherApi: WeatherApi,
+    appContext: Context,
+    params: WorkerParameters): CoroutineWorker(appContext, params) {
 
     companion object {
         const val WORK_NAME = "RefreshDataWorker"
@@ -31,7 +31,7 @@ class RefreshDataWorker @Inject constructor(
         val longitude = sharedPreferences.getFloat(LONGITUDE, DEFAULT_VALUE).toDouble()
 
         return  try {
-            val result = WeatherApiService.retrofitService.getWeatherData(latitude, longitude)
+            val result = weatherApi.getWeatherData(latitude, longitude)
             weatherRepository.deleteOldWeatherDailyData()
             weatherRepository.saveWeatherHourlyData(result.weatherHourly)
             weatherRepository.saveWeatherDailyDate(result.weatherDaily)

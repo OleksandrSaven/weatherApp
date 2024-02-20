@@ -1,10 +1,10 @@
 package com.weather.domain.repository
 
+import com.weather.data.database.entity.WeatherDailyEntity
+import com.weather.data.database.entity.WeatherHourlyEntity
 import com.weather.data.network.weaher.WeatherDailyDto
 import com.weather.data.network.weaher.WeatherDto
 import com.weather.data.network.weaher.WeatherHourlyDto
-import com.weather.database.WeatherDailyEntity
-import com.weather.database.WeatherHourlyEntity
 import com.weather.util.Resource
 
 interface WeatherRepository {

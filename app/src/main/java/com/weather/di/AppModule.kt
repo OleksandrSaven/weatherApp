@@ -2,9 +2,9 @@ package com.weather.di
 
 import android.content.Context
 import androidx.room.Room
-import com.weather.database.WeatherDailyDao
-import com.weather.database.WeatherDatabase
-import com.weather.database.WeatherHourlyDao
+import com.weather.data.database.WeatherDatabase
+import com.weather.data.database.dao.WeatherDailyDao
+import com.weather.data.database.dao.WeatherHourlyDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
