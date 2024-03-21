@@ -2,6 +2,7 @@ package com.weather.ui.home
 
 import android.content.Context
 import android.net.ConnectivityManager
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -52,6 +53,7 @@ class HomeViewModel @Inject constructor(
 
 
     init {
+        Log.i("Hello", "From viewModel")
         if (!isOnline()) {
             loadCacheWeather()
             _weatherState.value?.errorMessage = AppConstants.OFFLINE_MESSAGE

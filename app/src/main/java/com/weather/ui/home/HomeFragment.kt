@@ -63,7 +63,7 @@ class HomeFragment: Fragment() {
     }
 
     private fun setupUi(state: WeatherState) {
-        adapter.weathers = state.weatherByHourly
+        adapter.weathers = state.weatherByHourly!!
         binding.cityText.text  = state.city
         binding.apply {
             if (state.currentValue != null) {

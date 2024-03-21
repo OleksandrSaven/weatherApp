@@ -1,9 +1,10 @@
 package com.weather.domain.model.weather
 
 data class WeatherState(
-    var loadingState: Boolean,
-    var city: String,
-    var errorMessage: String?,
-    var weatherByHourly: List<WeatherDataHourly>,
-    var currentValue: WeatherDataHourly?
+    val loadingState: Boolean = false,
+    val city: String? = null,
+    var errorMessage: String? = null,
+    val weatherByHourly: List<WeatherDataHourly>? = null,
+    val currentValue: WeatherDataHourly? = null,
+    val weatherByDaily: List<WeatherDataDaily>? = null
 )
